@@ -1,8 +1,8 @@
 import aiohttp
 import asyncio
-from src.logger import logger
+from src.common.logger import logger
 from typing import Literal
-from src.constants import HTTP_TIMEOUT
+from src.common.constants import HTTP_TIMEOUT
 
 HTTP_METHOD = Literal["POST", "GET", "DELETE", "PATCH", "PUT"]
 
@@ -77,7 +77,21 @@ class HttpClient:
         response_json = await self._request(
             url=url,
             method="PATCH",
-            body=body,
+            json=body,
+            headers=headers,
+            **kwargs,
+        )
+        return response_json
+
+    async def delete(
+        self,
+        url: str,
+        headers: dict | None = None,
+        **kwargs,
+    ) -> list | dict | None:
+        response_json = await self._request(
+            url=url,
+            method="DELETE",
             headers=headers,
             **kwargs,
         )

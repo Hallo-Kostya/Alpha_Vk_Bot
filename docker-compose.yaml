@@ -1,0 +1,23 @@
+services:
+  bot:
+    build: .
+    command: python -m src.vk_bot.main
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - ./src:/app/src
+
+  backend:
+    build: .
+    command: python -m src.server.main
+    depends_on:
+      bot:
+        condition: service_started
+    ports:
+      - "8002:8000"
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - ./src:/app/src

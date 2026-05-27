@@ -1,11 +1,12 @@
-from src.http_client import HttpClient
-from src.constants import BackendConfig
+from src.vk_bot.http_client import HttpClient
+from src.common.constants import BackendConfig
 import asyncio
-from src.logger import logger
+from src.common.logger import logger
 from datetime import datetime, timezone
-from src.exceptions import BackendNotAvailable
+from src.common.exceptions import BackendNotAvailable
 from uuid import UUID
-from src.entities import ProjectTeam, ProjectTeamMember
+from src.common.entities import ProjectTeam
+from dataclasses import asdict
 
 
 class BackendSdk:
@@ -69,35 +70,22 @@ class BackendSdk:
         await self._ensure_tokens()
         url = f"{self._base_url}/project_applications/{vk_user_id}/available_projects"
         response = await self._http_client.get(
-            url, headers=self._auth_headers,
+            url,
+            headers=self._auth_headers,
         )
         if not isinstance(response, list):
             raise BackendNotAvailable
         return response
-        
 
     async def create_project_application(self, project_form: ProjectTeam) -> None:
-        if not project_form.team_name:
-            print("govno")
-            return
-        for team_member in project_form.form_members:
-            student = await self.create_student(team_member.fullname)
-            student_id = student.get("id")
-            if not student_id or not project_form.team_id:
-                print("govno2")
-                return
-            await self.add_student_to_team(project_form.team_id, student_id, team_member.project_role, team_member.academic_group)
-        await self.send_project_form({"project_id": project_form.project_id, "team_id": project_form.team_id, "vk_sender_id": project_form.vk_sender_id})
+        await self.send_project_form(asdict(project_form))
 
-
-    async def add_student_to_team(self, team_id: UUID, student_id: UUID, role: str, study_group: str) -> dict:
+    async def add_student_to_team(
+        self, team_id: UUID, student_id: UUID, role: str, study_group: str
+    ) -> dict:
         await self._ensure_tokens()
         url = f"{self._base_url}/teams/{team_id}/students"
-        data = {
-            "student_id": student_id,
-            "role": role,
-            "study_group": study_group
-        }
+        data = {"student_id": student_id, "role": role, "study_group": study_group}
         response = await self._http_client.post(
             url, headers=self._auth_headers, json=data
         )
@@ -105,8 +93,7 @@ class BackendSdk:
             raise BackendNotAvailable
         return response
 
-
-    async def send_project_form(self, project_form: dict) -> dict: #TODO
+    async def send_project_form(self, project_form: dict) -> dict:  # TODO
         await self._ensure_tokens()
         url = f"{self._base_url}/project_applications/"
         logger.info(project_form)
@@ -116,50 +103,8 @@ class BackendSdk:
         if not isinstance(response, dict):
             raise BackendNotAvailable
         return response
-    
-    async def create_team(self, team_name: str) -> dict:
-        await self._ensure_tokens()
-        url = f"{self._base_url}/teams/"
-        response = await self._http_client.post(
-            url, headers=self._auth_headers, json={"name": team_name}
-        )
-        if not isinstance(response, dict):
-            raise BackendNotAvailable
-        return response
-    
-    async def create_student(self, full_name: str) -> dict:
-        await self._ensure_tokens()
-        url = f"{self._base_url}/students/"
-        name_parts = full_name.split(" ")
-        data = {
-            "last_name": name_parts[0],
-            "first_name": name_parts[1],
-            "patronymc": name_parts[2] if len(name_parts) > 2 else None,
-        }
-        response = await self._http_client.post(
-            url, headers=self._auth_headers, json=data
-        )
-        if not isinstance(response, dict):
-            raise BackendNotAvailable
-        return response
-    
-    async def create_team_member(self, full_name: str) -> dict:
-        await self._ensure_tokens()
-        url = f"{self._base_url}/students/"
-        name_parts = full_name.split(" ")
-        data = {
-            "last_name": name_parts[0],
-            "first_name": name_parts[1],
-            "patronymc": name_parts[2] if len(name_parts) > 2 else None,
-        }
-        response = await self._http_client.post(
-            url, headers=self._auth_headers, json=data
-        )
-        if not isinstance(response, dict):
-            raise BackendNotAvailable
-        return response
 
-    async def get_peer_project_forms(self, sender_id: int) -> list[dict]: #TODO
+    async def get_peer_project_forms(self, sender_id: int) -> list[dict]:
         await self._ensure_tokens()
         url = f"{self._base_url}/project_applications/"
         params = {
@@ -172,9 +117,46 @@ class BackendSdk:
             raise BackendNotAvailable
         return response
 
-    async def get_teams(self, team_name: str | None = None, vk_peer_id: int | None = None) -> list[dict]:
+    async def get_form_by_id(self, form_id: UUID) -> list[dict]:
+        await self._ensure_tokens()
+        url = f"{self._base_url}/project_applications/"
+        params = {
+            "id": form_id,
+        }
+        response = await self._http_client.get(
+            url, headers=self._auth_headers, params=params
+        )
+        if not isinstance(response, list):
+            raise BackendNotAvailable
+        return response
+
+    async def delete_form(self, form_id: UUID) -> None:
+        await self._ensure_tokens()
+        url = f"{self._base_url}/project_applications/{form_id}/"
+        response = await self._http_client.delete(
+            url,
+            headers=self._auth_headers,
+        )
+        if not isinstance(response, dict):
+            raise BackendNotAvailable
+
+    async def update_form(self, form_id: UUID, update_data: dict) -> dict:
+        await self._ensure_tokens()
+        url = f"{self._base_url}/project_applications/{form_id}/"
+        response = await self._http_client.patch(
+            url, headers=self._auth_headers, body=update_data
+        )
+        if not isinstance(response, dict):
+            raise BackendNotAvailable
+        return response
+
+    async def get_teams(
+        self, team_name: str | None = None, vk_peer_id: int | None = None
+    ) -> list[dict]:
         if not (team_name or vk_peer_id):
-            logger.error("None of required args (team_name, vk_peer_id) is passed in get team method")
+            logger.error(
+                "None of required args (team_name, vk_peer_id) is passed in get team method"
+            )
             return []
         await self._ensure_tokens()
         url = f"{self._base_url}/teams/detailed_list"
@@ -189,3 +171,13 @@ class BackendSdk:
         if not isinstance(response, list):
             raise BackendNotAvailable
         return response
+
+    async def post_interview(self, application_id: UUID, date: str) -> None:
+        await self._ensure_tokens()
+        url = f"{self._base_url}/{application_id}/interview/"
+        data = {"interview_date": date}
+        response = await self._http_client.post(
+            url, headers=self._auth_headers, json=data
+        )
+        if not isinstance(response, list):
+            raise BackendNotAvailable

@@ -1,9 +1,9 @@
 from vkbottle.bot import Bot, BotLabeler
 from vkbottle import BuiltinStateDispenser
-from src.constants import VK_GROUP_TOKEN
+from src.common.constants import VK_GROUP_TOKEN
 import aiohttp
-from src.http_client import HttpClient
-from src.backend_sdk import BackendSdk
+from src.vk_bot.http_client import HttpClient
+from src.vk_bot.backend_sdk import BackendSdk
 
 backend_sdk: BackendSdk
 
@@ -13,11 +13,7 @@ state_dispenser = BuiltinStateDispenser()
 
 chat_labeler = BotLabeler()
 
-bot = Bot(
-    VK_GROUP_TOKEN,
-    labeler=chat_labeler,
-    state_dispenser=state_dispenser
-)
+bot = Bot(VK_GROUP_TOKEN, labeler=chat_labeler, state_dispenser=state_dispenser)
 
 
 async def on_startup():

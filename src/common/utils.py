@@ -1,4 +1,6 @@
 from vkbottle import Keyboard, Text, KeyboardButtonColor
+from vkbottle.bot import Message
+from src.common.logger import logger
 
 
 def build_keyboard(buttons: list[tuple], one_time: bool = True, inline: bool = False):
@@ -10,7 +12,7 @@ def build_keyboard(buttons: list[tuple], one_time: bool = True, inline: bool = F
                 name,
                 payload=payload,
             ),
-            color=KeyboardButtonColor.PRIMARY
+            color=KeyboardButtonColor.PRIMARY,
         )
 
     return keyboard
@@ -40,3 +42,15 @@ def format_team(team: dict) -> str:
         lines.append(f"- {fio}, Роль: {role}, Академическая группа: {group}")
 
     return "\n".join(lines)
+
+
+async def validate_payload(message: Message) -> dict | None:
+    if not message.state_peer or "project_team" not in message.state_peer.payload:
+        logger.error(
+            f"Error while handling team name: incorrect payload: {message.state_peer}"
+        )
+        await message.answer(
+            "Возникли проблемы с выбором проекта, повторите попытку позднее, пожалуйста"
+        )
+        return None
+    return message.state_peer.payload

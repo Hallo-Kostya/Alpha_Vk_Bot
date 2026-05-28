@@ -2,7 +2,11 @@ from collections import defaultdict
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
-from src.server.api.schemas import NotifyDeclineAccept, InterviewPossibleDates
+from src.server.api.schemas import (
+    NotifyDeclineAccept,
+    InterviewPossibleDates,
+    InterviewUpdate,
+)
 from src.vk_bot.bot import bot
 from src.server.auth import AuthService
 from random import randint
@@ -71,6 +75,26 @@ async def notify_interview_choose_date(
     )
     return {
         "success": f"User with id: {vk_sender_id} was successfully notified that his application status has been changed to 'INTERVIEW'"
+    }
+
+
+@router.post("/{vk_sender_id}/notify_interview/update/")
+async def notify_interview_updated(vk_sender_id: int, data: InterviewUpdate) -> dict:
+    url = data.url
+    date = data.date
+
+    message = "Здравствуйте! Обновлёна информация по Вашему интервью.\n"
+    if url:
+        message += f"Добавлена ссылка на подключение к звонку: {url}\n"
+    if date:
+        message += (
+            f"Изменена дата собеседования, новая дата: {date.strftime('%d.%m %H:%M')}"
+        )
+    await bot.api.messages.send(
+        user_id=vk_sender_id, message=message, random_id=randint(1, 2**31)
+    )
+    return {
+        "success": f"User with id: {vk_sender_id} was successfully notified that his interview info was updated"
     }
 
 

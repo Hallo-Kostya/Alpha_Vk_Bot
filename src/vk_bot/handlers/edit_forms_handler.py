@@ -130,6 +130,9 @@ async def get_form_status(message: Message):
     forms_mapping = {}
     answer = "Ваши отправленные заявки:\n"
     for num, form in enumerate(active_forms, 1):
+        interview = form.get("interview")
+        if interview:
+            pass
         forms_mapping[num] = form
         answer += f"""{num}. Команда: {form["team_name"]}
 Выбранный проект: {form["project"]["name"]}

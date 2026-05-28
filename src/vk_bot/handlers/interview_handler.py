@@ -91,7 +91,7 @@ async def ack_choosen_date(message: Message):
     if response == "да":
         backend_sdk = get_backend_sdk()
         await backend_sdk.post_interview(
-            payload["application_id"], payload["choosen_date"]
+            payload["application_id"], payload["choosen_date"].isoformat()
         )
         await message.answer(
             "Успешно создали интервью! Ссылка на встречу придет Вам в этот же чат, спасибо за уделённое время."

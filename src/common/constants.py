@@ -15,6 +15,14 @@ FORM_STATUSES_MAPPING: dict = {
     "INTERVIEW": "Назначено интервью",
 }
 
+INTERVIEW_STATUSES_MAPPING: dict = {
+    "NEW": "Ждём согласования времени от кураторов",
+    "WAITING": "Интервью согласовано",
+    "RATING": "Ждём оценки от кураторов",
+    "RATED": "Интервью оценено",
+    "CANCELED": "Интервью отменено",
+}
+
 
 class BotSettings:
     base_greeting: str = """

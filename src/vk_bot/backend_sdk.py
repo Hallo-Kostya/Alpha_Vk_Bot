@@ -174,10 +174,11 @@ class BackendSdk:
 
     async def post_interview(self, application_id: UUID, date: str) -> None:
         await self._ensure_tokens()
-        url = f"{self._base_url}/{application_id}/interview/"
+        url = f"{self._base_url}/project_applications/{application_id}/interview/"
         data = {"interview_date": date}
         response = await self._http_client.post(
             url, headers=self._auth_headers, json=data
         )
-        if not isinstance(response, list):
+        logger.info(response)
+        if not isinstance(response, dict):
             raise BackendNotAvailable

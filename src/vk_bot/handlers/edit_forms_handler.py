@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from vkbottle import (
     Text,
     Keyboard,
@@ -7,7 +9,11 @@ from vkbottle import (
 from src.common.logger import logger
 from vkbottle.bot import Message, BotLabeler
 import enum
-from src.common.constants import FORM_STATUSES_MAPPING, BotSettings
+from src.common.constants import (
+    FORM_STATUSES_MAPPING,
+    BotSettings,
+    INTERVIEW_STATUSES_MAPPING,
+)
 from src.common.entities import ProjectTeamPATCH, ProjectTeamMemberPATCH
 from src.vk_bot.bot import get_backend_sdk, state_dispenser
 from src.common.utils import build_keyboard, validate_payload
@@ -130,14 +136,25 @@ async def get_form_status(message: Message):
     forms_mapping = {}
     answer = "Ваши отправленные заявки:\n"
     for num, form in enumerate(active_forms, 1):
-        interview = form.get("interview")
+        interview = form.get("interview", {})
+        formatted_interview = None
         if interview:
-            pass
+            status = interview.get("status", "")
+            status = INTERVIEW_STATUSES_MAPPING.get(status, "Ждёт обработки")
+            date = interview.get("date")
+            if date:
+                if isinstance(date, str):
+                    date = datetime.fromisoformat(date)  # если ISO формат
+                date = date.strftime("%d.%m %H:%M")
+            else:
+                date = "Не указана"
+            url = interview.get("url") or "Не указана"
+            formatted_interview = f"- Статус: {status}\n - Дата: {date}\n - URL: {url}"
         forms_mapping[num] = form
         answer += f"""{num}. Команда: {form["team_name"]}
 Выбранный проект: {form["project"]["name"]}
 Статус: {FORM_STATUSES_MAPPING.get(form["status"], "Ждёт обработки")}
-Собеседование: {form["interview"] or "Не назначено"}\n
+Собеседование:\n {formatted_interview or "Не назначено"}\n
 """
     answer += "Вы можете изменить данные любой заявки, выбрав соответствующую"
     keyboard = (

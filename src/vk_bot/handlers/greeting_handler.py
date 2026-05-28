@@ -14,7 +14,7 @@ KEYBOARD = (
     Keyboard(inline=True)
     .add(Text("Создать заявку"), color=KeyboardButtonColor.POSITIVE)
     .add(Text("Мои заявки"), color=KeyboardButtonColor.SECONDARY)
-    .add(Text("Проекты"), color=KeyboardButtonColor.SECONDARY)
+    # .add(Text("Проекты"), color=KeyboardButtonColor.SECONDARY)
     .get_json()
 )
 

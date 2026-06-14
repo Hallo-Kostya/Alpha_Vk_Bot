@@ -6,7 +6,12 @@ from vkbottle import (
 )
 import enum
 from vkbottle.bot import Message, BotLabeler
-from src.common.utils import build_keyboard, format_team, validate_payload
+from src.common.utils import (
+    build_keyboard,
+    format_team,
+    validate_payload,
+    format_name_for_button,
+)
 from src.vk_bot.bot import state_dispenser, get_backend_sdk
 from src.common.entities import ProjectTeam, ProjectTeamMember
 from src.common.logger import logger
@@ -103,7 +108,10 @@ async def fill_form(message: Message):
         keyboard = (
             build_keyboard(
                 [
-                    (project["name"], {"id": project["id"], "name": project["name"]})
+                    (
+                        format_name_for_button(project["name"]),
+                        {"id": project["id"], "name": project["name"]},
+                    )
                     for project in available_projects
                 ],
                 one_time=False,
@@ -376,7 +384,7 @@ async def send_form(message: Message):
         project_team_dto: ProjectTeam = payload["project_team"]
         await backend_sdk.create_project_application(project_team_dto)
         await message.answer(
-            "Форма успешно отправлена! Спасибо за уделенное время",
+            "Форма успешно отправлена! Спасибо за уделенное время. Если что, Вы всегда можете активировать меня, написав 'Начать'.",
             keyboard=GREETING_KEYBOARD,
         )
     except Exception as e:

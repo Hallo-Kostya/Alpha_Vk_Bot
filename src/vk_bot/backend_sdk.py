@@ -132,10 +132,12 @@ class BackendSdk:
 
     async def delete_form(self, form_id: UUID) -> None:
         await self._ensure_tokens()
-        url = f"{self._base_url}/project_applications/{form_id}/"
-        response = await self._http_client.delete(
+        url = f"{self._base_url}/project_applications/{form_id}/change_status/"
+        new_data = {"new_status": "DECLINED"}
+        response = await self._http_client.patch(
             url,
             headers=self._auth_headers,
+            params=new_data,
         )
         if not isinstance(response, dict):
             raise BackendNotAvailable

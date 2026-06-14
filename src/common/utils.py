@@ -54,3 +54,9 @@ async def validate_payload(message: Message) -> dict | None:
         )
         return None
     return message.state_peer.payload
+
+
+def format_name_for_button(name: str) -> str:
+    if len(name) >= 40:
+        return name[:39]
+    return name

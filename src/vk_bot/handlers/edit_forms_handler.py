@@ -30,10 +30,11 @@ EDIT_KEYBOARD = (
     .add(Text("Название команды"), color=KeyboardButtonColor.PRIMARY)
     .add(Text("Описание"), color=KeyboardButtonColor.PRIMARY)
     .add(Text("Участников"), color=KeyboardButtonColor.PRIMARY)
-    .add(Text("Удалить заявку"), color=KeyboardButtonColor.NEGATIVE)
-    .add(Text("Отменить"), color=KeyboardButtonColor.PRIMARY)
+    .add(Text("Отменить заявку"), color=KeyboardButtonColor.NEGATIVE)
+    .add(Text("Назад"), color=KeyboardButtonColor.PRIMARY)
     .get_json()
 )
+
 
 DELETION_KEYBOARD = (
     Keyboard(one_time=True, inline=False)
@@ -139,7 +140,7 @@ async def get_form_status(message: Message):
         interview = form.get("interview", {})
         formatted_interview = None
         if interview:
-            status = interview.get("status", "")
+            status = interview.get("interview_status", "")
             status = INTERVIEW_STATUSES_MAPPING.get(status, "Ждёт обработки")
             date = interview.get("date")
             if date:
@@ -159,10 +160,7 @@ async def get_form_status(message: Message):
     answer += "Вы можете изменить данные любой заявки, выбрав соответствующую"
     keyboard = (
         build_keyboard(
-            [
-                (f"Заявка №{num}", {"id": form["id"]})
-                for num, form in forms_mapping.items()
-            ],
+            [(f"№{num}", {"id": form["id"]}) for num, form in forms_mapping.items()],
             one_time=False,
             inline=True,
         )
@@ -354,7 +352,7 @@ async def handle_team_members(message: Message):
 
 
 @edit_forms_labeler.private_message(
-    state=EditFormStates.EDIT_PART_SELECTION, text=["Удалить заявку", "Да"]
+    state=EditFormStates.EDIT_PART_SELECTION, text=["Отменить заявку", "Да"]
 )
 async def delete_form(message: Message):
     try:
@@ -367,7 +365,7 @@ async def delete_form(message: Message):
             backend_sdk = get_backend_sdk()
             await backend_sdk.delete_form(project_team_dto.form_id)
             await message.answer(
-                "Заявка успешна удалена! Может, чем-то ещё могу помочь?",
+                "Может, чем-то ещё могу Вам помочь?",
                 keyboard=GREETING_KEYBOARD,
             )
             return
@@ -377,7 +375,7 @@ async def delete_form(message: Message):
             project_team=project_team_dto,
         )
         await message.answer(
-            f"{str(project_team_dto)}\n\nВы точно хотите удалить эту заявку?",
+            f"{str(project_team_dto)}\n\nВы точно хотите отменить эту заявку? Если к заявке привязано собеседование, то оно также отменится.",
             keyboard=DELETION_KEYBOARD,
         )
     except Exception as e:
@@ -398,7 +396,7 @@ async def send_form(message: Message):
             project_team_dto.form_id, asdict(project_team_dto)
         )
         await message.answer(
-            "Форма успешно обновлена! Спасибо за уделенное время",
+            "Форма успешно обновлена! Спасибо за уделенное время. Если что, просто пишите 'Начать' - и я уже тут!",
             keyboard=GREETING_KEYBOARD,
         )
     except Exception as e:

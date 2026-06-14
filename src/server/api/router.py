@@ -25,7 +25,7 @@ async def base():
 @router.post("/{vk_sender_id}/notify_decline/")
 async def notify_decline(vk_sender_id: int, data: NotifyDeclineAccept) -> dict:
     message = f"""Здравствуйте!
-К сожалению, мы приняли решение отклонить Вашу заявку от команды: {data.team_name} на проект: {data.project_name}"""
+Ваша заявка от команды {data.team_name} на проект: {data.project_name} была отклонена."""
     await bot.api.messages.send(
         user_id=vk_sender_id, message=message, random_id=randint(1, 2**31)
     )

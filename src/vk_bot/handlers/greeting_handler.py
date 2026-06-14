@@ -14,12 +14,13 @@ KEYBOARD = (
     Keyboard(inline=True)
     .add(Text("Создать заявку"), color=KeyboardButtonColor.POSITIVE)
     .add(Text("Мои заявки"), color=KeyboardButtonColor.SECONDARY)
-    # .add(Text("Проекты"), color=KeyboardButtonColor.SECONDARY)
     .get_json()
 )
 
 
-@greeting_labeler.private_message(text=["Привет", "Здравствуйте", "Начать", "Отменить"])
+@greeting_labeler.private_message(
+    text=["Привет", "Здравствуйте", "Начать", "Отменить", "Назад"]
+)
 async def greet(message: Message):
     await message.answer(BotSettings.base_greeting, keyboard=KEYBOARD)
 

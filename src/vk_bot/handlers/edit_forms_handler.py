@@ -150,7 +150,9 @@ async def get_form_status(message: Message):
             else:
                 date = "Не указана"
             url = interview.get("url") or "Не указана"
-            formatted_interview = f"- Статус: {status}\n - Дата: {date}\n - URL: {url}"
+            formatted_interview = (
+                f"- Статус: {status}\n - Дата: {date}\n - Ссылка на звонок: {url}"
+            )
         forms_mapping[num] = form
         answer += f"""{num}. Команда: {form["team_name"]}
 Выбранный проект: {form["project"]["name"]}
@@ -396,7 +398,7 @@ async def send_form(message: Message):
             project_team_dto.form_id, asdict(project_team_dto)
         )
         await message.answer(
-            "Форма успешно обновлена! Спасибо за уделенное время. Если что, просто пишите 'Начать' - и я уже тут!",
+            "Форма успешно обновлена! Спасибо за уделенное время. Если что, просто пишите 'Начать' или 'Привет' - и я уже тут!",
             keyboard=GREETING_KEYBOARD,
         )
     except Exception as e:

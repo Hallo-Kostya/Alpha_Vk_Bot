@@ -6,7 +6,9 @@ from src.common.logger import logger
 def build_keyboard(buttons: list[tuple], one_time: bool = True, inline: bool = False):
     keyboard = Keyboard(one_time=one_time, inline=inline)
 
-    for name, payload in buttons:
+    for index, (name, payload) in enumerate(buttons, 1):
+        if index % 4 == 0:
+            keyboard.row()
         keyboard.add(
             Text(
                 name,

@@ -54,16 +54,16 @@ class BackendSdk:
             "Authorization"
         ].format(token=self.__access_token["token"])
 
-    def _is_token_actual(self, expires_date: datetime) -> bool:
+    def _is_token_expired(self, expires_date: datetime) -> bool:
         return datetime.now(tz=timezone.utc) >= expires_date
 
     async def _ensure_tokens(self) -> None:
         async with self._auth_lock:
-            if not self.__refresh_token or not self._is_token_actual(
+            if not self.__refresh_token or self._is_token_expired(
                 self.__refresh_token["expires_at"]
             ):
                 return await self._auth()
-            if not self._is_token_actual(self.__access_token["expires_at"]):
+            if self._is_token_expired(self.__access_token["expires_at"]):
                 return await self._refresh_tokens()
 
     async def get_available_projects_for_user(self, vk_user_id: int) -> list[dict]:
